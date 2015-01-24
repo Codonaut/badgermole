@@ -1,5 +1,8 @@
 import sys
 
+# TODO: Get requirements in there
+# Todo: What happens when there aren't enough args?
+
 class Badgermole(object):
     """
     A Command line option parsing class.
@@ -10,6 +13,9 @@ class Badgermole(object):
     """
 
     def __init__(self):
+        self._clear()
+
+    def _clear(self):
         self.positional = []
         self.options = {}
         self.args = {}
@@ -28,7 +34,7 @@ class Badgermole(object):
                 name, 
                 short_name='',
                 num_args=0,
-                required=False):
+                required=True):
         self._check_name_conflicts(name, short_name)
 
         positional = not (len(name) > 2 and name[:2] == '--')
@@ -50,9 +56,13 @@ class Badgermole(object):
         for token in tokens:
             option = self._is_option(token)
             if option:
+                if expecting_args:
+                    raise Exception("Expecting an argument for <{}>, but received option <{}>.".format(
+                            expecting_args['arg'].out_name, option.out_name))
                 if option.num_args > 0:
                     expecting_args = {
-                        'option': option,
+                        'option': True,
+                        'arg': option,
                         'num_args': option.num_args,
                         'args': []
                     }
@@ -62,24 +72,28 @@ class Badgermole(object):
                 expecting_args['args'].append(token)
                 expecting_args['num_args'] -= 1
                 if expecting_args['num_args'] == 0:
-                    if 'arg' in expecting_args:
+                    if not expecting_args['option']:
                         self.args[expecting_args['arg'].out_name] = expecting_args['args']
                         pos_idx += 1
                     else:
-                        self.args[expecting_args['option'].out_name] = expecting_args['args']
+                        self.args[expecting_args['arg'].out_name] = expecting_args['args']
                     expecting_args = {}
-            else:
+            elif pos_idx < len(self.positional):
                 # It's a positional argument
                 arg = self.positional[pos_idx]
-                if arg.num_args > 0:
+                if arg.num_args > 0 and not expecting_args:
                     expecting_args = {
+                        'option': False,
                         'arg': arg,
-                        'num_args': arg.num_args,
-                        'args': []
+                        'num_args': arg.num_args - 1,
+                        'args': [token]
                     }
                 else:
                     self.args[arg.out_name] = token
                     pos_idx += 1
+        for arg in list(self.positional + self.options.values()):
+            if arg.required and arg.out_name not in self.args:
+                raise Exception('Required argument <{}> was not supplied.'.format(arg.out_name))
 
 
 class Arg(object):
