@@ -1,7 +1,4 @@
-import sys
-
-# TODO: Get requirements in there
-# Todo: What happens when there aren't enough args?
+# TODO: Document usage more
 
 class Badgermole(object):
     """
@@ -51,7 +48,9 @@ class Badgermole(object):
 
     def parse_args(self, command_str):
         tokens = command_str.split()
-        expecting_args = {}
+        # If an arg requires arguments expecting_args jumps into play
+        expecting_args = {} 
+        # Index in self.positional indicating next expected positional arg
         pos_idx = 0
         for token in tokens:
             option = self._is_option(token)
@@ -91,12 +90,17 @@ class Badgermole(object):
                 else:
                     self.args[arg.out_name] = token
                     pos_idx += 1
+
+        # Make sure all required arguments have been passed in
         for arg in list(self.positional + self.options.values()):
             if arg.required and arg.out_name not in self.args:
                 raise Exception('Required argument <{}> was not supplied.'.format(arg.out_name))
 
 
 class Arg(object):
+    """
+    Simple class that holds arg attributes.  It's better than using a dictionary.
+    """
     def __init__(self,
                  positional,
                  name,

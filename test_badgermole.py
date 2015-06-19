@@ -19,11 +19,11 @@ class BadgermoleTester(unittest.TestCase):
 		bm._clear()
 		bm.add_arg('--verbose', '-v', num_args=2)
 		bm.add_arg('foo')
-		bm.parse_args('foo_val -v 1 2')
+		bm.parse_args('-v 1 2 foo_val')
 		self.assertEqual(bm.args['verbose'], ['1', '2'])
 		self.assertEqual(bm.args['foo'], 'foo_val')
 		bm.add_arg('--subtract', '-s', required=False)
-		bm.parse_args('foo_val -v 1 -s')
+		self.assertRaises(Exception, bm.parse_args, 'foo_val -v 1 -s')
 
 if __name__ == '__main__':
     unittest.main()
