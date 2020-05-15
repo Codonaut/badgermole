@@ -1,5 +1,7 @@
 # TODO: Document usage more
 
+print 'hi'
+
 class Badgermole(object):
     """
     A Command line option parsing class.
